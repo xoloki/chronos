@@ -11,19 +11,22 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Button;
+import android.widget.LinearLayout;
 
 import java.text.DecimalFormat;
+import java.util.List;
 
 public class StopwatchActivity extends Activity
 {
     final static String TAG = "StopwatchActivity";
     static final String PREFS_DATA = "CHRONOS_PREFS_DATA";
-    final static long TICK = 50;
+    final static long TICK = 44;
 
     Handler mHandler = null;
 
@@ -32,8 +35,23 @@ public class StopwatchActivity extends Activity
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        //setContentView(R.layout.main);
 
+        //LinearLayout linearLayout = (LinearLayout)findViewById(R.id.timers);
+
+        LayoutInflater inflater = getLayoutInflater();
+        LinearLayout linearLayout = (LinearLayout)inflater.inflate(R.layout.main, null);
+
+        List<Timer> timers = TimerDAO.getAll();
+        
+        View firstTimer = inflater.inflate(R.layout.timer, null);
+        View secondTimer = inflater.inflate(R.layout.timer, null);
+
+        linearLayout.addView(firstTimer);
+        linearLayout.addView(secondTimer);
+
+        setContentView(linearLayout);
+        
         mHandler = new Handler(Looper.getMainLooper()) {
     		public void handleMessage(Message msg) {
             }

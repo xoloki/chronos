@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 24
     buildToolsVersion "29.0.2"
 
     defaultConfig {
         applicationId "be.dancingdragon.chronos"
-        minSdkVersion 11
-        targetSdkVersion 11
+        minSdkVersion 24
+        targetSdkVersion 24
     }
 
     buildTypes {
@@ -16,4 +16,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
+    dependencies {
+        def room_version = "2.2.5"
+
+        implementation "androidx.room:room-runtime:$room_version"
+        annotationProcessor "androidx.room:room-compiler:$room_version" // For Kotlin use kapt instead of annotationProcessor
+    }
+}
+
+dependencies {
+    implementation 'android.arch.persistence.room:runtime:1.1.1'
+    annotationProcessor 'android.arch.persistence.room:compiler:1.1.1'
 }
