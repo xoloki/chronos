@@ -19,6 +19,8 @@ import android.widget.TextView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import androidx.room.Room;
+
 import java.text.DecimalFormat;
 import java.util.List;
 
@@ -42,34 +44,36 @@ public class StopwatchActivity extends Activity
         LayoutInflater inflater = getLayoutInflater();
         LinearLayout linearLayout = (LinearLayout)inflater.inflate(R.layout.main, null);
 
-        List<Timer> timers = TimerDAO.getAll();
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+        AppDatabase.class, "database-name").build();        
+        List<Timer> timers = db.timerDAO().getAll();
+
+        for(Timer timer : timers) {
+            View timerView = inflater.inflate(R.layout.timer, null);
+
+            linearLayout.addView(timerView);
+            
+            final Button resetButton = (Button)timerView.findViewById(R.id.timer_reset);
+            resetButton.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        onOptionsItemIdSelected(R.string.menu_reset);
+                    }
+                });
+            
+            final Button startStopButton = (Button)timerView.findViewById(R.id.timer_start_stop);
+            startStopButton.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        onOptionsItemIdSelected(R.string.menu_start_stop);
+                    }
+                });
+        }
         
-        View firstTimer = inflater.inflate(R.layout.timer, null);
-        View secondTimer = inflater.inflate(R.layout.timer, null);
-
-        linearLayout.addView(firstTimer);
-        linearLayout.addView(secondTimer);
-
         setContentView(linearLayout);
         
         mHandler = new Handler(Looper.getMainLooper()) {
     		public void handleMessage(Message msg) {
             }
         };
-
-        final Button resetButton = (Button)findViewById(R.id.timer_reset);
-        resetButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    onOptionsItemIdSelected(R.string.menu_reset);
-                }
-            });
-        
-        final Button startStopButton = (Button)findViewById(R.id.timer_start_stop);
-        startStopButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    onOptionsItemIdSelected(R.string.menu_start_stop);
-                }
-            });
 
         update();
         setTimer(TICK);
