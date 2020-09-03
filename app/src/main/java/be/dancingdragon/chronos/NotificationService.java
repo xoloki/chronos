@@ -21,7 +21,7 @@ public class NotificationService extends Service {
 
     NotificationManager mManager = null;
     Handler mHandler = null;
-
+    
 	public void onCreate() {
 		Log.d(TAG, "onCreate");
 
@@ -53,24 +53,25 @@ public class NotificationService extends Service {
     protected void setTimer(final long time) {
         Runnable t = new Runnable() {
                 public void run() {
-                    long nextTick = TICK;
-
-                    if(StopwatchActivity.getStarted(getApplicationContext())) {
-                        nextTick = update();
-                    }
-
+                    update();
                     setTimer(time);
                 }
             };
         mHandler.postDelayed(t, time);
     }
 
-    long update() {
+    void update() {
+        for(Timer timer : StopwatchActivity.mInstance.mTimers.keySet()) {
+            update(timer);
+        }
+    }
+    
+    void update(Timer timer) {
         CharSequence title = "Stopwatch";
 
-        long start = StopwatchActivity.getStart(this);
-        long stop = StopwatchActivity.getStop(this);
-        boolean started = StopwatchActivity.getStarted(this);
+        long start = timer.startTime;
+        long stop = timer.stopTime;
+        boolean started = timer.started;
 
         DecimalFormat fmt = new DecimalFormat("00");
         
@@ -86,6 +87,7 @@ public class NotificationService extends Service {
         //long tenthDiff = (diff - hourDiff * 60 * 60 * 1000 - minDiff * 60 * 1000 - secDiff * 1000) / (100);
         
         String hourVal = fmt.format(hourDiff);
+
         String minVal = fmt.format(minDiff);
         String secVal = fmt.format(secDiff);
         //String tenthVal = Long.valueOf(tenthDiff).toString();
@@ -106,7 +108,7 @@ public class NotificationService extends Service {
 
         long nextTick = diff % TICK;
         
-        return nextTick == 0 ? TICK : nextTick;
+        //return nextTick == 0 ? TICK : nextTick;
     }
 
 }

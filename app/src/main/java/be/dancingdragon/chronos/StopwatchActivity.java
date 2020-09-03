@@ -19,12 +19,17 @@ import android.widget.TextView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.room.Room;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
-public class StopwatchActivity extends Activity
+public class StopwatchActivity extends AppCompatActivity
 {
     final static String TAG = "StopwatchActivity";
     static final String PREFS_DATA = "CHRONOS_PREFS_DATA";
@@ -32,6 +37,12 @@ public class StopwatchActivity extends Activity
 
     Handler mHandler = null;
 
+    Map<Timer, View> mTimers = null;
+
+    LinearLayout mMainLayout = null;
+
+    static StopwatchActivity mInstance = null;
+    
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -42,45 +53,120 @@ public class StopwatchActivity extends Activity
         //LinearLayout linearLayout = (LinearLayout)findViewById(R.id.timers);
 
         LayoutInflater inflater = getLayoutInflater();
-        LinearLayout linearLayout = (LinearLayout)inflater.inflate(R.layout.main, null);
+        mMainLayout = (LinearLayout)inflater.inflate(R.layout.main, null);
 
-        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-        AppDatabase.class, "database-name").build();        
-        List<Timer> timers = db.timerDAO().getAll();
-
-        for(Timer timer : timers) {
-            View timerView = inflater.inflate(R.layout.timer, null);
-
-            linearLayout.addView(timerView);
-            
-            final Button resetButton = (Button)timerView.findViewById(R.id.timer_reset);
-            resetButton.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        onOptionsItemIdSelected(R.string.menu_reset);
-                    }
-                });
-            
-            final Button startStopButton = (Button)timerView.findViewById(R.id.timer_start_stop);
-            startStopButton.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        onOptionsItemIdSelected(R.string.menu_start_stop);
-                    }
-                });
-        }
-        
-        setContentView(linearLayout);
+        setContentView(mMainLayout);
         
         mHandler = new Handler(Looper.getMainLooper()) {
-    		public void handleMessage(Message msg) {
-            }
-        };
+                public void handleMessage(Message msg) {
+                }
+            };
+        
+        Thread dbLoad = new Thread() {
+                public void run() {
+                    Log.i("StopwatchActivity", "dbLoad thread");
+                    AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "chronos").build();
+                    Log.i("StopwatchActivity", "getting all timers");
+                    final List<Timer> timers = db.timerDAO().getAll();
+
+                    Runnable t = new Runnable() {
+                            public void run() {
+                                Log.i("StopwatchActivity", "calling back to main thread onDbLoad");
+                                onDbLoad(timers);
+                            }
+                        };
+                    mHandler.post(t);
+                }
+            };
+        dbLoad.start();
+
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Log.i("StopwatchActivity", "clicked floating action button");
+                    Thread dbInsert = new Thread() {
+                            public void run() {
+                                final Timer timer = new Timer();
+                                AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "chronos").build();
+                                db.timerDAO().insertAll(timer);
+                                
+                                Runnable t = new Runnable() {
+                                        public void run() {
+                                            onDbAdd(timer);
+                                        }
+                                    };
+                                mHandler.post(t);
+
+                            }
+                        };
+
+                    dbInsert.start();
+                }
+            });
+    
+        mInstance = this;
+    }
+
+    void onDbLoad(List<Timer> timers) {
+        mTimers = new HashMap();
+        for(final Timer timer : timers) {
+            onDbAdd(timer);
+        }
 
         update();
         setTimer(TICK);
 
         startService(new Intent(this, NotificationService.class));
     }
+    
+    void onDbAdd(final Timer timer) {
+        LayoutInflater inflater = getLayoutInflater();
+        View timerView = inflater.inflate(R.layout.timer, null);
+        
+        mMainLayout.addView(timerView);
+        
+        mTimers.put(timer, timerView);
+        
+        final Button resetButton = (Button)timerView.findViewById(R.id.timer_reset);
+        resetButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    onReset(timer);
+                }
+            });
+        
+        final Button startStopButton = (Button)timerView.findViewById(R.id.timer_start_stop);
+        startStopButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    onStartStop(timer);
+                }
+            });
+        
+        update();
+    }
 
+    void onReset(Timer timer) {
+        long now = System.currentTimeMillis();
+
+        timer.startTime = now;;
+        timer.stopTime = 0;
+
+        update(timer);
+    }
+    
+    void onStartStop(Timer timer) {
+        long now = System.currentTimeMillis();
+
+        if(timer.started) {
+            timer.stopTime = now;
+        } else {
+            timer.startTime = now;
+            timer.stopTime = 0;
+        }
+
+        update(timer);
+    }
+    /*    
     public boolean onCreateOptionsMenu(Menu menu) {
         return super.onCreateOptionsMenu(menu);
     }
@@ -90,7 +176,7 @@ public class StopwatchActivity extends Activity
     	super.onPrepareOptionsMenu(menu);
 
     	menu.clear();
-        /*
+        //
         menu.add(Menu.NONE, R.string.menu_reset, Menu.NONE, R.string.menu_reset)
         	.setIcon(android.R.drawable.ic_menu_revert)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
@@ -98,7 +184,7 @@ public class StopwatchActivity extends Activity
         menu.add(Menu.NONE, R.string.menu_start_stop, Menu.NONE, R.string.menu_start_stop)
         	.setIcon(android.R.drawable.ic_menu_send)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-        */
+
 
         return true; 
     }
@@ -139,11 +225,18 @@ public class StopwatchActivity extends Activity
 
         return true;
     }
+*/
+    void update() {
+        for(Timer timer : mTimers.keySet()) {
+            update(timer);
+        }
+    }
 
-    long update() {
-        long start = getStart();
-        long stop = getStop();
-        boolean started = getStarted();
+    void update(Timer timer) {
+        View timerView = mTimers.get(timer);
+        long start = timer.startTime;
+        long stop = timer.stopTime;
+        boolean started = timer.started;
 
         DecimalFormat fmt = new DecimalFormat("00");
         
@@ -158,98 +251,46 @@ public class StopwatchActivity extends Activity
         long secDiff = (diff - hourDiff * 60 * 60 * 1000 - minDiff * 60 * 1000) / (1000);
         long tenthDiff = (diff - hourDiff * 60 * 60 * 1000 - minDiff * 60 * 1000 - secDiff * 1000) / (100);
         
-        TextView hourView = (TextView)findViewById(R.id.timer_hours);
+        TextView hourView = (TextView)timerView.findViewById(R.id.timer_hours);
         String hourVal = fmt.format(hourDiff);
         
         hourView.setText(hourVal);
         
-        TextView minView = (TextView)findViewById(R.id.timer_minutes);
+        TextView minView = (TextView)timerView.findViewById(R.id.timer_minutes);
         String minVal = fmt.format(minDiff);
         
         minView.setText(minVal);
         
-        TextView secView = (TextView)findViewById(R.id.timer_seconds);
+        TextView secView = (TextView)timerView.findViewById(R.id.timer_seconds);
         String secVal = fmt.format(secDiff);
         
         secView.setText(secVal);
         
-        TextView tenthView = (TextView)findViewById(R.id.timer_tenths);
+        TextView tenthView = (TextView)timerView.findViewById(R.id.timer_tenths);
         String tenthVal = Long.valueOf(tenthDiff).toString();
         
         tenthView.setText(tenthVal);
 
-        Button startStopView = (Button)findViewById(R.id.timer_start_stop);
+        Button startStopView = (Button)timerView.findViewById(R.id.timer_start_stop);
         String startStopVal = started ? "Stop" : "Start";
         
         startStopView.setText(startStopVal);
 
         long nextTick = diff % TICK;
         
-        return nextTick == 0 ? TICK : nextTick;
+        //return nextTick == 0 ? TICK : nextTick;
     }
 
     protected void setTimer(final long time) {
         Runnable t = new Runnable() {
                 public void run() {
-                    long nextTick = TICK;
-
-                    if(getStarted()) {
-                        nextTick = update();
+                        update();
+                        setTimer(time);
                     }
-                    
-                    setTimer(time);
-                }
             };
         mHandler.postDelayed(t, time);
     }
 
-    void setStart(long start) {
-        setDataLong(getApplicationContext(), "start", start);
-    }     
-    
-    void setStop(long stop) {
-        setDataLong(getApplicationContext(), "stop", stop);
-    }     
-    
-    void setStarted(boolean started) {
-        setDataBoolean(getApplicationContext(), "started", started);
-    }     
-    
-    long getStart() {
-        return getDataLong(getApplicationContext(), "start", 0);
-    }     
-    
-    long getStop() {
-        return getDataLong(getApplicationContext(), "stop", 0);
-    }     
-    
-    boolean getStarted() {
-        return getDataBoolean(getApplicationContext(), "started", false);
-    }     
-
-    static void setStart(Context context, long start) {
-        setDataLong(context, "start", start);
-    }     
-
-    static void setStop(Context context, long stop) {
-        setDataLong(context, "stop", stop);
-    }     
-
-    static void setStarted(Context context, boolean started) {
-        setDataBoolean(context, "started", started);
-    }     
-
-    static long getStart(Context context) {
-        return getDataLong(context, "start", 0);
-    }     
-
-    static long getStop(Context context) {
-        return getDataLong(context, "stop", 0);
-    }     
-
-    static boolean getStarted(Context context) {
-        return getDataBoolean(context, "started", false);
-    }     
 
     static void setDataLong(Context context, String key, long val) {
         SharedPreferences settings = context.getSharedPreferences(PREFS_DATA, 0);
@@ -276,6 +317,4 @@ public class StopwatchActivity extends Activity
         SharedPreferences settings = context.getSharedPreferences(PREFS_DATA, 0);
         return settings.getBoolean(key, def);
     }
-
-
 }

@@ -6,9 +6,15 @@ import androidx.room.PrimaryKey;
 
 @Entity(tableName = "timer")
 public class Timer {
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     public int uid;
+
+    @ColumnInfo(name = "started")
+    public boolean started;
 
     @ColumnInfo(name = "start_time")
     public long startTime;
+
+    @ColumnInfo(name = "stop_time")
+    public long stopTime;
 }
