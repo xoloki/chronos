@@ -7,14 +7,14 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "timer")
 public class Timer {
     @PrimaryKey(autoGenerate = true)
-    public int uid;
+    public int uid = 0;
 
     @ColumnInfo(name = "started")
-    public boolean started;
+    public boolean started = false;
 
     @ColumnInfo(name = "start_time")
-    public long startTime;
+    public long startTime = 0;
 
     @ColumnInfo(name = "stop_time")
-    public long stopTime;
+    public long stopTime = 0;
 }

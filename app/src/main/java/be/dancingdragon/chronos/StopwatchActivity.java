@@ -64,14 +64,16 @@ public class StopwatchActivity extends AppCompatActivity
         
         Thread dbLoad = new Thread() {
                 public void run() {
-                    Log.i("StopwatchActivity", "dbLoad thread");
-                    AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "chronos").build();
-                    Log.i("StopwatchActivity", "getting all timers");
-                    final List<Timer> timers = db.timerDAO().getAll();
+                    Log.i(TAG, "dbLoad thread");
+
+                    Log.i(TAG, "getting all timers");
+                    final List<Timer> timers = timerDAO().getAll();
 
                     Runnable t = new Runnable() {
                             public void run() {
-                                Log.i("StopwatchActivity", "calling back to main thread onDbLoad");
+                                String ids = "";
+                                for(Timer timer : timers) ids += "{id " + timer.uid + "} ";
+                                Log.i(TAG, "calling back to main thread onDbLoad with timers " + ids);
                                 onDbLoad(timers);
                             }
                         };
@@ -84,13 +86,14 @@ public class StopwatchActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Log.i("StopwatchActivity", "clicked floating action button");
+                    Log.i(TAG, "clicked floating action button");
                     Thread dbInsert = new Thread() {
                             public void run() {
                                 final Timer timer = new Timer();
-                                AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "chronos").build();
-                                db.timerDAO().insertAll(timer);
-                                
+                                Log.i(TAG,"before insert, timer.uid = " + timer.uid);
+                                timerDAO().insertAll(timer);
+                                Log.i(TAG,"after insert, timer.uid = " + timer.uid);
+
                                 Runnable t = new Runnable() {
                                         public void run() {
                                             onDbAdd(timer);
@@ -148,7 +151,11 @@ public class StopwatchActivity extends AppCompatActivity
     void onReset(Timer timer) {
         long now = System.currentTimeMillis();
 
-        timer.startTime = now;;
+        if(timer.started) {
+            timer.startTime = now;
+        } else {
+            timer.startTime = 0;
+        }
         timer.stopTime = 0;
 
         update(timer);
@@ -160,12 +167,22 @@ public class StopwatchActivity extends AppCompatActivity
         if(timer.started) {
             timer.stopTime = now;
         } else {
-            timer.startTime = now;
+            if(timer.startTime == 0) {
+                timer.startTime = now;
+            }
             timer.stopTime = 0;
         }
 
+        timer.started = !timer.started;
+        
         update(timer);
     }
+
+    TimerDAO timerDAO() {
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "chronos").build();
+        return db.timerDAO();
+    }
+    
     /*    
     public boolean onCreateOptionsMenu(Menu menu) {
         return super.onCreateOptionsMenu(menu);
@@ -246,6 +263,10 @@ public class StopwatchActivity extends AppCompatActivity
         }
 
         long diff = now - start;
+
+        Log.i(TAG, "update timer uid " + timer.uid + "started " + timer.started + " start " + timer.startTime + " stop " + timer.stopTime + ", diff " + diff);
+
+
         long hourDiff = diff / (1000 * 60 * 60);
         long minDiff = (diff - hourDiff * 60 * 60 * 1000) / (1000 * 60);
         long secDiff = (diff - hourDiff * 60 * 60 * 1000 - minDiff * 60 * 1000) / (1000);
