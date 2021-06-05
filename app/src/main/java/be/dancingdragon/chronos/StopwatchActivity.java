@@ -72,7 +72,7 @@ public class StopwatchActivity extends AppCompatActivity
                     Runnable t = new Runnable() {
                             public void run() {
                                 String ids = "";
-                                for(Timer timer : timers) ids += "{id " + timer.uid + "} ";
+                                for(Timer timer : timers) ids += "{uid " + timer.uid + " started " + timer.started + " startTime " + timer.startTime + " stopTime " + timer.stopTime + "}";
                                 Log.i(TAG, "calling back to main thread onDbLoad with timers " + ids);
                                 onDbLoad(timers);
                             }
@@ -159,6 +159,7 @@ public class StopwatchActivity extends AppCompatActivity
         timer.stopTime = 0;
 
         update(timer);
+        updateDb(timer);
     }
     
     void onStartStop(Timer timer) {
@@ -176,8 +177,32 @@ public class StopwatchActivity extends AppCompatActivity
         timer.started = !timer.started;
         
         update(timer);
+        updateDb(timer);
     }
 
+    void updateDb(final Timer timer) {
+        Thread dbUpdate = new Thread() {
+                public void run() {
+                    Log.i(TAG, "dbUpdate thread");
+
+                    Log.i(TAG, "updating timer");
+                    timerDAO().update(timer);
+                    /*
+                    Runnable t = new Runnable() {
+                            public void run() {
+                                String ids = "";
+                                for(Timer timer : timers) ids += "{uid " + timer.uid + " started " + timer.started + " startTime " + timer.startTime + " stopTime " + timer.stopTime + "}";
+                                Log.i(TAG, "calling back to main thread onDbLoad with timers " + ids);
+                                onDbLoad(timers);
+                            }
+                        };
+                    mHandler.post(t);
+                    */
+                }
+            };
+        dbUpdate.start();
+    }
+    
     TimerDAO timerDAO() {
         AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "chronos").build();
         return db.timerDAO();
