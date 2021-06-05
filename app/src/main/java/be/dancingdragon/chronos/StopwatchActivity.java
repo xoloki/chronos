@@ -170,6 +170,8 @@ public class StopwatchActivity extends AppCompatActivity
         } else {
             if(timer.startTime == 0) {
                 timer.startTime = now;
+            } else {
+                timer.startTime = now - (timer.stopTime - timer.startTime);
             }
             timer.stopTime = 0;
         }
