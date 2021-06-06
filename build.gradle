@@ -21,4 +21,5 @@ ext {
     archLifecycleVersion = '2.2.0-beta01'
     coreTestingVersion = '2.1.0'
     materialVersion = '1.0.0'
+    coordinatorVersion = '1.1.0'
 }
