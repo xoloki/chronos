@@ -6,23 +6,24 @@
     android:layout_height="fill_parent"
     android:orientation="vertical"
     tools:actionBarNavMode="standard">
+    <!-- com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/add_timer"
+        android:src="@drawable/ic_baseline_add_24" / -->
 <ScrollView
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-<LinearLayout 
+<LinearLayout
     android:id="@+id/timers"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     />
 </ScrollView>
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/add_timer"
-        android:src="@drawable/ic_baseline_add_24" />
+
 </LinearLayout>
 

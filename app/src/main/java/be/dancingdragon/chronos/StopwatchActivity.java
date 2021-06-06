@@ -1,5 +1,6 @@
 package be.dancingdragon.chronos;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Service;
@@ -15,9 +16,11 @@ import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -59,6 +62,10 @@ public class StopwatchActivity extends AppCompatActivity
         mMainLayout = (LinearLayout)inflater.inflate(R.layout.main, null);
 
         setContentView(mMainLayout);
+
+        ActionBar actionBar = getActionBar();
+
+        if(actionBar != null) actionBar.setHomeButtonEnabled(true);
         
         mHandler = new Handler(Looper.getMainLooper()) {
                 public void handleMessage(Message msg) {
@@ -84,7 +91,7 @@ public class StopwatchActivity extends AppCompatActivity
                 }
             };
         dbLoad.start();
-
+        /*
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -110,6 +117,7 @@ public class StopwatchActivity extends AppCompatActivity
                     dbInsert.start();
                 }
             });
+        */
     
         mInstance = this;
     }
@@ -136,14 +144,14 @@ public class StopwatchActivity extends AppCompatActivity
         
         mTimers.put(timer, timerView);
         
-        final Button renameButton = (Button)timerView.findViewById(R.id.timer_rename);
+        final ImageButton renameButton = (ImageButton)timerView.findViewById(R.id.timer_rename);
         renameButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     onRename(timer);
                 }
             });
         //renameButton.setDrawable();
-        final Button deleteButton = (Button)timerView.findViewById(R.id.timer_delete);
+        final ImageButton deleteButton = (ImageButton)timerView.findViewById(R.id.timer_delete);
         deleteButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     onDelete(timer);
@@ -306,8 +314,15 @@ public class StopwatchActivity extends AppCompatActivity
         AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "chronos").build();
         return db.timerDAO();
     }
+    /*
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.action_bar, menu);
+        return true;
+    }
+    */
     
-    /*    
     public boolean onCreateOptionsMenu(Menu menu) {
         return super.onCreateOptionsMenu(menu);
     }
@@ -317,15 +332,16 @@ public class StopwatchActivity extends AppCompatActivity
     	super.onPrepareOptionsMenu(menu);
 
     	menu.clear();
-        //
-        menu.add(Menu.NONE, R.string.menu_reset, Menu.NONE, R.string.menu_reset)
-        	.setIcon(android.R.drawable.ic_menu_revert)
+
+        menu.add(Menu.NONE, R.string.menu_add, Menu.NONE, R.string.menu_add)
+        	.setIcon(R.drawable.ic_baseline_add_24)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 
+        /*
         menu.add(Menu.NONE, R.string.menu_start_stop, Menu.NONE, R.string.menu_start_stop)
         	.setIcon(android.R.drawable.ic_menu_send)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-
+        */
 
         return true; 
     }
@@ -338,35 +354,36 @@ public class StopwatchActivity extends AppCompatActivity
     public boolean onOptionsItemIdSelected(int id) {
         long now = System.currentTimeMillis();
 
+        Log.i(TAG, "onOptionsItemSelected " + id);
+
     	switch(id) {
-    	case R.string.menu_reset:
-            setStart(now);
-            setStop(now);
-            break;
-    	case R.string.menu_start_stop:
-            setStarted(!getStarted());
+    	case R.string.menu_add: {
+            Thread dbInsert = new Thread() {
+                    public void run() {
+                        final Timer timer = new Timer();
+                        timerDAO().insertAll(timer);
+                        
+                        Runnable t = new Runnable() {
+                                public void run() {
+                                    onDbAdd(timer);
+                                }
+                            };
+                        mHandler.post(t);
+                        
+                    }
+                };
             
-            if(!getStarted()) {
-                setStop(now);
-            }
-
-            if(getStarted() && getStart() == 0) {
-                setStart(now);
-            } 
-
-            if(getStarted() && getStop() != 0) {
-                long diff = getStop() - getStart();
-                setStart(now - diff);
-            }
+            dbInsert.start();
 
             break;
+        }
         }
 
         update();
 
         return true;
     }
-*/
+
     void update() {
         for(Timer timer : mTimers.keySet()) {
             update(timer);
