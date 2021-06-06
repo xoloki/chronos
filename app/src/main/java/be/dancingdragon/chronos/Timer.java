@@ -9,6 +9,9 @@ public class Timer {
     @PrimaryKey(autoGenerate = true)
     public int uid = 0;
 
+    @ColumnInfo(name = "name")
+    public String name = "Timer " + uid;
+
     @ColumnInfo(name = "started")
     public boolean started = false;
 

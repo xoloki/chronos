@@ -1,8 +1,10 @@
 package be.dancingdragon.chronos;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -131,6 +133,20 @@ public class StopwatchActivity extends AppCompatActivity
         
         mTimers.put(timer, timerView);
         
+        final Button renameButton = (Button)timerView.findViewById(R.id.timer_rename);
+        renameButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    onRename(timer);
+                }
+            });
+        //renameButton.setDrawable();
+        final Button deleteButton = (Button)timerView.findViewById(R.id.timer_delete);
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    onDelete(timer);
+                }
+            });
+
         final Button resetButton = (Button)timerView.findViewById(R.id.timer_reset);
         resetButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
@@ -146,6 +162,49 @@ public class StopwatchActivity extends AppCompatActivity
             });
         
         update();
+    }
+
+    void onRename(Timer timer) {
+        View timerView = mTimers.get(timer);
+        TextView nameView = (TextView)timerView.findViewById(R.id.timer_name);
+        //nameView.setText(name);
+        nameView.setSelected(true);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder
+            .setTitle("Rename timer '" + timer.name + "'")
+        // Add the buttons
+            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User clicked OK button
+                    }
+                })
+            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User cancelled the dialog
+                    }
+                });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    void onDelete(Timer timer) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Add the buttons
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User clicked OK button
+                }
+            });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User cancelled the dialog
+                }
+            });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     void onReset(Timer timer) {
@@ -281,7 +340,11 @@ public class StopwatchActivity extends AppCompatActivity
         long start = timer.startTime;
         long stop = timer.stopTime;
         boolean started = timer.started;
+        String name = timer.name;
 
+        TextView nameView = (TextView)timerView.findViewById(R.id.timer_name);
+        nameView.setText(name);
+        
         DecimalFormat fmt = new DecimalFormat("00");
         
         long now = System.currentTimeMillis();
