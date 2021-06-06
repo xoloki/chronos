@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -129,7 +130,9 @@ public class StopwatchActivity extends AppCompatActivity
         LayoutInflater inflater = getLayoutInflater();
         View timerView = inflater.inflate(R.layout.timer, null);
         
-        mMainLayout.addView(timerView);
+        //mMainLayout.addView(timerView);
+        LinearLayout timers = (LinearLayout)mMainLayout.findViewById(R.id.timers);
+        timers.addView(timerView);
         
         mTimers.put(timer, timerView);
         
@@ -164,19 +167,27 @@ public class StopwatchActivity extends AppCompatActivity
         update();
     }
 
-    void onRename(Timer timer) {
+    void onRename(final Timer timer) {
         View timerView = mTimers.get(timer);
-        TextView nameView = (TextView)timerView.findViewById(R.id.timer_name);
+        final TextView nameView = (TextView)timerView.findViewById(R.id.timer_name);
         //nameView.setText(name);
         nameView.setSelected(true);
+
+        final EditText editText = new EditText(this);
+        editText.setText(timer.name);
+        editText.setSelection(0, timer.name.length());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder
             .setTitle("Rename timer '" + timer.name + "'")
+            .setView(editText)
         // Add the buttons
             .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // User clicked OK button
+                        timer.name = editText.getText().toString();
+                        update(timer);
+                        updateDb(timer);
                     }
                 })
             .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -189,15 +200,18 @@ public class StopwatchActivity extends AppCompatActivity
         dialog.show();
     }
 
-    void onDelete(Timer timer) {
+    void onDelete(final Timer timer) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         // Add the buttons
-        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+        builder
+            .setTitle("Delete timer '" + timer.name + "'")
+            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     // User clicked OK button
+                    deleteDb(timer);
                 }
-            });
-        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            })
+            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     // User cancelled the dialog
                 }
@@ -262,6 +276,30 @@ public class StopwatchActivity extends AppCompatActivity
                 }
             };
         dbUpdate.start();
+    }
+
+    void deleteDb(final Timer timer) {
+        Thread thread = new Thread() {
+                public void run() {
+                    Log.i(TAG, "deleting timer");
+                    timerDAO().delete(timer);
+
+                    Runnable t = new Runnable() {
+                            public void run() {
+                                View v = mTimers.get(timer);
+                                LinearLayout timers = (LinearLayout)findViewById(R.id.timers);
+
+                                timers.removeView(v);
+                                mTimers.remove(timer);
+
+                                update();
+                                
+                            }
+                        };
+                    mHandler.post(t);
+                }
+            };
+        thread.start();
     }
     
     TimerDAO timerDAO() {
