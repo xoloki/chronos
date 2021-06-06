@@ -83,7 +83,7 @@ public class StopwatchActivity extends AppCompatActivity
                 }
             };
         dbLoad.start();
-
+/*
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -109,7 +109,7 @@ public class StopwatchActivity extends AppCompatActivity
                     dbInsert.start();
                 }
             });
-    
+  */
         mInstance = this;
     }
 
@@ -129,7 +129,9 @@ public class StopwatchActivity extends AppCompatActivity
         LayoutInflater inflater = getLayoutInflater();
         View timerView = inflater.inflate(R.layout.timer, null);
         
-        mMainLayout.addView(timerView);
+        //mMainLayout.addView(timerView);
+        LinearLayout timersView = (LinearLayout)mMainLayout.findViewById(R.id.timers);
+        timersView.addView(timerView);
         
         mTimers.put(timer, timerView);
         
