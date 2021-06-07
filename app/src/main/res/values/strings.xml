@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Chronos</string>
+    <string name="menu_add">Add</string>
     <string name="menu_reset">Reset</string>
     <string name="menu_start_stop">Start/Stop</string>
+    <string name="add_timer">Add new timer</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
 </resources>

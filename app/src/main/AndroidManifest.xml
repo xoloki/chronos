@@ -3,9 +3,11 @@
       package="be.dancingdragon.chronos"
       android:versionCode="1"
       android:versionName="1.0">
-    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher">
+  <application android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:directBootAware="true" android:theme="@style/Theme.AppCompat" >
+    
         <activity android:name="StopwatchActivity"
-                  android:label="Chronos">
+                  android:label="Chronos"
+                  >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -17,6 +19,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </service>
-    </application>
-    <uses-sdk android:minSdkVersion="11" />
+  </application>
+  
 </manifest>

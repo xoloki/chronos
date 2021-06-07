@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/timer"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -7,48 +8,75 @@
   <LinearLayout
       android:orientation="horizontal"
       android:layout_width="fill_parent"
+      android:layout_height="fill_parent"
+      >
+
+    <TextView
+        android:id="@+id/timer_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="10"
+        android:text="Timer"
+        android:textSize="24sp" />
+    <ImageButton
+        android:id="@+id/timer_rename"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:src="@drawable/ic_baseline_edit_24" />
+    <ImageButton android:id="@+id/timer_delete"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:src="@drawable/ic_baseline_close_24"
+        />
+  </LinearLayout>
+  <LinearLayout
+      android:orientation="horizontal"
+      android:layout_width="fill_parent"
       android:layout_height="wrap_content"
+      android:gravity="center"
       >
     <TextView android:id="@+id/timer_hours"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="00"
-        android:textSize="72sp"
+        android:textSize="48sp"
         />
     <TextView android:id="@+id/timer_hours_minutes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=":"
-        android:textSize="72sp"
+        android:textSize="48sp"
         />
     <TextView android:id="@+id/timer_minutes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="72sp"
+        android:textSize="48sp"
         android:text="00"
         />
     <TextView android:id="@+id/timer_minutes_seconds"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="72sp"
+        android:textSize="48sp"
         android:text=":"
         />
     <TextView android:id="@+id/timer_seconds"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="72sp"
+        android:textSize="48sp"
         android:text="00"
         />
     <TextView android:id="@+id/timer_seconds_tenths"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="72sp"
+        android:textSize="48sp"
         android:text="."
         />
     <TextView android:id="@+id/timer_tenths"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="72sp"
+        android:textSize="48sp"
         android:text="0"
         />
   </LinearLayout>
